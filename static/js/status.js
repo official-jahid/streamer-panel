@@ -1,18 +1,14 @@
 $(document).ready(function () {
-    console.log('status ok');
+    console.log('status ok - REGIX Studio');
 
     $.ajax({
         type: "POST",
         url: "/get-process",
         success: function (response) {
-            if(response.status== 200)
-            {
-                $("#onlinebtn").text("Online");
-                $("#onlinebtn").addClass('bg-blue-600 border-green-400 border');
-            }
-            else {
-                $("#onlinebtn").text("Offline");
-                $("#onlinebtn").addClass('bg-inherit border border-red-400');
+            if(response.status == 200) {
+                $("#onlinebtn").text("Online").removeClass('inactive').addClass('active pulse-blood');
+            } else {
+                $("#onlinebtn").text("Offline").removeClass('active').addClass('inactive');
             }
         }
     });

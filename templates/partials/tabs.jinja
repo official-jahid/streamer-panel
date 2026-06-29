@@ -1,45 +1,39 @@
 {% macro Tabs(num) %}
-    <div id="tabs" class="no-scrollbar h-30">
+    <div id="tabs" class="no-scrollbar h-30 card-blood">
         <div class="">
             {% if num ==1 %}
-                
-                <a href="/dashboard" class="active">Headshot</a>
+                <a href="/dashboard" class="active button-blood">Headshot</a>
             {% else %}
-                <a href="/dashboard" class="inactive">Headshot</a>
-                
+                <a href="/dashboard" class="inactive hover-blood-glow">Headshot</a>
             {% endif %}
             {% if num ==2 %}
-                
-                <a href="/sniper-panel" class="active">Sniper</a>
+                <a href="/sniper-panel" class="active button-blood">Sniper</a>
             {% else %}
-                <a href="/sniper-panel" class="inactive">Sniper</a>
-                
+                <a href="/sniper-panel" class="inactive hover-blood-glow">Sniper</a>
             {% endif %}
             {% if num ==3 %}
-                
-                <a href="/extra-panel" class="active">Extra</a>
+                <a href="/extra-panel" class="active button-blood">Extra</a>
             {% else %}
-                <a href="/extra-panel" class="inactive">Extra</a>
-                
+                <a href="/extra-panel" class="inactive hover-blood-glow">Extra</a>
             {% endif %}
             {% if num ==4 %}
-                
-                <a href="/settings" class="active">Settings</a>
+                <a href="/settings" class="active button-blood">Settings</a>
             {% else %}
-                <a href="/settings" class="inactive">Settings</a>
-                
+                <a href="/settings" class="inactive hover-blood-glow">Settings</a>
             {% endif %}
-            
         </div>
     </div>
     <style>
         #tabs {
-	 background-color: #1f2427;
 	 width: 100%;
 	 border-radius: 10px;
 	 display: flex;
 	 align-items: center;
-     color: white;
+	 color: white;
+	 transition: all 0.3s ease;
+}
+ #tabs:hover {
+	 box-shadow: 0 0 15px #8B0000;
 }
  #tabs div {
 	 display: flex;
@@ -56,25 +50,25 @@
 }
 .active {
 	 color: white;
-	 background-color: #1bbc9b;
+	 background: linear-gradient(45deg, #8B0000, #DC143C);
 	 padding: 1rem;
 	 border-radius: 10px;
 	 font-weight: 600;
-     height: 50px;
-     display: flex;
-     align-items: center;
+	 height: 50px;
+	 display: flex;
+	 align-items: center;
+	 box-shadow: 0 0 10px #FF0000;
 }
 .inactive {
-	 background-color: #363a40;
+	 background: rgba(22, 0, 0, 0.3);
 	 padding: 1rem;
 	 border-radius: 10px;
-     border: 1px solid #1bbc9b;
 	 font-weight: 600;
-    color: white;
-    height: 50px;
-    display: flex;
-    align-items: center;
+	 color: #FF6B6B;
+	 height: 50px;
+	 display: flex;
+	 align-items: center;
+	 border: 1px solid #8B0000;
 }
- 
     </style>
 {% endmacro %}

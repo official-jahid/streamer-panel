@@ -1,39 +1,40 @@
 {% macro Settings(args) %}
     <script src="{{url_for('static',filename='js/settings.js')}}"></script>
-    <div id="headshot" class="divide-y bg-">
-        
+    <div id="settings" class="divide-y">
         <div class="p-4 w-full h-full">
             <div class="flex flex-row justify-between items-center h-full">
                 <div>
-                    <h2 class="text-white font-bold text-2xl">Username: <span class="text-white" id="username"></span> </h2>
-                    <span class="text-white opacity-60">HWID: <span class="text-white" id="hwid"></span></span>
+                    <h2 class="text-red-400 font-bold text-2xl neon-blood">Username: <span class="text-red-300" id="username"></span></h2>
+                    <span class="text-red-300 opacity-60">HWID: <span class="text-red-300" id="hwid"></span></span>
                 </div>
-                
             </div>
         </div>
         <div class="p-4 w-full h-full">
             <div class="flex flex-row justify-between items-center h-full">
                 <div>
-                    <h2 class="text-white font-bold text-2xl">Expiry: <span  class="text-white" id="expiry"></span></h2>
-                    <span class="text-white opacity-60">Online Users: <span  class="text-white" id="onlineusers"></span></span>
+                    <h2 class="text-red-400 font-bold text-2xl neon-blood">Expiry: <span class="text-red-300" id="expiry"></span></h2>
+                    <span class="text-red-300 opacity-60">Online Users: <span class="text-red-300" id="onlineusers"></span></span>
                 </div>
-                
             </div>
         </div>
     </div>
     <style>
-        #headshot {
+        #settings {
             width: 100%;
             height: min-content;
             border-radius: 10px;
-            background-color: #1f2427;
+            background: linear-gradient(145deg, rgba(22, 0, 0, 0.9), rgba(75, 0, 0, 0.5));
             display: flex;
             flex-direction: column;
             justify-content: space-around;
             gap: 2rem;
             padding-bottom: 1rem;
             margin-bottom: 60px;
+            border: 1px solid rgba(139, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
-        
+        #settings:hover {
+            box-shadow: 0 0 20px #8B0000;
+        }
     </style>
 {% endmacro %}

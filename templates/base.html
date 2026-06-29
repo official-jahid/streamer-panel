@@ -7,20 +7,83 @@
       content="width=device-width, initial-scale=1.0" />
     <title>REGIX Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blood: '#8B0000',
+              bloodDark: '#4A0000',
+              bloodLight: '#DC143C',
+              danger: '#FF0000',
+            }
+          }
+        }
+      }
+    </script>
     <script
       src="https://code.jquery.com/jquery-3.7.1.js"
       integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"></script>
   </head>
-
   <style>
     *::-webkit-scrollbar {
       display: none;
-      font-family: monospace;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 5px theme('colors.blood'); }
+      50% { box-shadow: 0 0 20px theme('colors.bloodLight'), 0 0 30px theme('colors.danger'); }
+    }
+    @keyframes pulse-blood {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes blood-drip {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    .glow-effect {
+      animation: glow 2s ease-in-out infinite;
+    }
+    .pulse-blood {
+      animation: pulse-blood 2s ease-in-out infinite;
+    }
+    .blood-gradient {
+      background: linear-gradient(135deg, #000000 0%, #2D0000 25%, #4A0000 50%, #8B0000 75%, #DC143C 100%);
+    }
+    .blood-border {
+      border: 2px solid theme('colors.blood');
+      box-shadow: 0 0 10px theme('colors.blood');
+    }
+    .hover-blood-glow:hover {
+      box-shadow: 0 0 15px theme('colors.bloodLight'), 0 0 30px theme('colors.danger');
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+    }
+    .button-blood {
+      background: linear-gradient(45deg, theme('colors.bloodDark'), theme('colors.blood'));
+      transition: all 0.3s ease;
+    }
+    .button-blood:hover {
+      background: linear-gradient(45deg, theme('colors.blood'), theme('colors.bloodLight'));
+      box-shadow: 0 0 15px theme('colors.danger');
+      transform: scale(1.05);
+    }
+    .card-blood {
+      background: linear-gradient(145deg, rgba(22, 0, 0, 0.9), rgba(75, 0, 0, 0.7));
+      border: 1px solid rgba(139, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+    .text-blood {
+      color: theme('colors.bloodLight');
+      text-shadow: 0 0 5px theme('colors.blood');
+    }
+    .neon-blood {
+      text-shadow: 0 0 10px theme('colors.bloodLight'), 0 0 20px theme('colors.danger'), 0 0 30px theme('colors.danger');
     }
   </style>
-
-  <body>
+  <body class="blood-gradient min-h-screen">
     {% block body %} {% endblock %}
   </body>
 </html>

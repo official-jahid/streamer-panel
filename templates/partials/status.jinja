@@ -1,24 +1,27 @@
 {% macro Status(version) %}
 <script src="{{url_for('static',filename='js/status.js')}}"></script>
-<div id="status">
+<div id="status" class="card-blood">
     <div>
-        <h2>Status</h2>
-        <span>WELCOME TO AXC CORPORATION </>DEV: AXC ANMOL & ARPIT</span>
+        <h2 class="neon-blood">REGIX Studio Panel</h2>
+        <span class="text-red-300">WELCOME TO REGIX STUDIO </>DEV: REGIX Studio Team</span>
     </div>
     <div>
-        <button id="onlinebtn" class="border-[#1bbc9b] border">Offline</button>
-        <span>v{{version}}</span>
+        <button id="onlinebtn" class="border-red-500 blood-border bg-black bg-opacity-50 pulse-blood">Offline</button>
+        <span class="text-red-400">v{{version}}</span>
     </div>
 </div>
 <style>
     #status {
-	 background-color: #1f2427;
 	 height: 6rem;
 	 border-radius: 10px;
 	 display: flex;
 	 align-items: center;
 	 width: 100%;
 	 justify-content: space-between;
+	 transition: all 0.3s ease;
+}
+ #status:hover {
+	 box-shadow: 0 0 20px theme('colors.blood');
 }
  #status div:nth-child(1) {
 	 width: 100%;
@@ -58,17 +61,18 @@
 	 align-items: center;
 	 border-radius: 10px;
 	 font-weight: 800;
+	 cursor: default;
 }
  #status div:nth-child(2) span {
-	 color: white;
+	 color: red;
 }
  .active {
-	 background-color: #1bbc9b;
+	 background-color: theme('colors.blood');
+	 box-shadow: 0 0 10px theme('colors.danger');
 }
  .inactive {
-	 background-color: #1f2427;
-	 border: 1px solid #1bbc9b;
+	 background-color: rgba(22, 0, 0, 0.5);
+	 border: 1px solid theme('colors.blood');
 }
- 
 </style>
 {% endmacro %}

@@ -5,34 +5,28 @@ $(document).ready(function () {
     $("#consolebtn").click(function (e) { 
         e.preventDefault();
         msgbox = !msgbox;
-        // $("#consolebtn").toggleClass('hidden');
         
-        if (msgbox)
-        {
-            $("#consolebtn").text("Close");
-            // $("#consolebtn").text("Close");
-            // $("#console").addClass('h-48');
-            $("#console").toggleClass('hidden');
+        if (msgbox) {
+            $("#consolebtn").text("Close").addClass('pulse-blood');
+            $("#console").toggleClass('hidden').addClass('animate-fadeIn');
             $.ajax({
                 type: "POST",
                 url: "/logs",
                 success: function (response) {
-                    if (response.status)
-                    {
+                    if (response.status) {
                         var contents = ""
                         response.message.forEach(element => {
-                            var content = `<span class="text-green-400 text-lg">${element}</span>`
-                            contents += content
+                            var timeStr = element.split(' ')[0] || '';
+                            var msgStr = element.substring(9) || element;
+                            var content = `<div class="text-red-400 text-sm border-b border-red-800 pb-1 mb-1 animate-pulse"><span class="text-red-500">[${timeStr}]</span> ${msgStr}</div>`;
+                            contents += content;
                         });
-                        $("#console").html(contents)
+                        $("#console").html(contents);
                     }
                 }
             });
-        }
-        else {
-            $("#consolebtn").text("Open");
-            // $("#consolebtn").text("Open");
-            // $("#console").addClass('hidden');
+        } else {
+            $("#consolebtn").text("Open").removeClass('pulse-blood');
             $("#console").toggleClass('hidden');
         }
     });

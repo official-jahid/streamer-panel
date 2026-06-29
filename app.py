@@ -16,7 +16,7 @@ def getchecksum():
     digest = md5_hash.hexdigest()
     return digest
 keyauthapp = api(
-    name = "REGIX STORE", # Application Name
+    name = "REGIX Studio", # Application Name
     ownerid = "JjpGjXJhfE", # Owner ID
     secret = "f1e3904593d857cc2af43b4f59a3e008286677b82f15aeb8bf6fa4ca278a6265", # Application Secret
     version = "1.0", # Application Version
