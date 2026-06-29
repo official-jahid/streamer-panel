@@ -1,52 +1,59 @@
 {% extends 'base.html' %} {% block body %}
 <script src="{{url_for('static',filename='js/homepage.js')}}"></script>
-<div class="h-screen flex items-center justify-center">
-  <div class="flex flex-col items-center container">
-    <div class="flex flex-col justify-center">
+<div class="h-screen flex items-center justify-center relative overflow-hidden">
+  <div class="absolute inset-0 bg-black opacity-50"></div>
+  <div class="flex flex-col items-center container z-10">
+    <div class="flex flex-col justify-center items-center mb-8">
       <img
-        class="w-48 h-48 outline outline-blue-400 rounded-full"
+        class="w-48 h-48 outline outline-red-600 rounded-full glow-effect"
         src="{{url_for('static',filename='images/logo.png')}}"
-        alt=""
+        alt="REGIX Studio"
         sizes=""
         srcset="" />
-      <span class="text-2xl text-center font-bold">REGIX Studio</span>
+      <span class="text-4xl text-center font-bold text-red-500 neon-blood mt-4">REGIX Studio</span>
+      <span class="text-red-400 opacity-80 mt-2">Advanced Gaming Solutions</span>
     </div>
     <div class="w-full px-4 md:w-1/2 lg:w-1/3">
-      <div class="mb-2">
+      <div class="mb-4">
         <label
-          for=""
-          class="block text-base font-medium text-dark dark:text-white">
+          for="username"
+          class="block text-base font-medium text-red-200 mb-2">
           Username
         </label>
         <input
           id="username"
           type="text"
-          placeholder="Username..."
-          class="w-full bg-transparent rounded-md border border-stroke dark:border-dark-3 py-[10px] px-5 text-dark-6 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-2 disabled:border-gray-2" />
+          placeholder="Enter your username..."
+          class="w-full bg-black bg-opacity-50 rounded-md border border-red-800 text-white outline-none transition focus:border-red-500 focus:shadow-lg focus:shadow-red-500/50 py-3 px-5 hover-blood-glow" />
       </div>
     </div>
     <div class="w-full px-4 md:w-1/2 lg:w-1/3">
-      <div class="mb-2">
+      <div class="mb-4">
         <label
-          for=""
-          class="block text-base font-medium text-dark dark:text-white">
+          for="password"
+          class="block text-base font-medium text-red-200 mb-2">
           Password
         </label>
         <input
           id="password"
-          type="text"
-          placeholder="Password..."
-          class="w-full bg-transparent rounded-md border border-stroke dark:border-dark-3 py-[10px] px-5 text-dark-6 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-2 disabled:border-gray-2" />
+          type="password"
+          placeholder="Enter your password..."
+          class="w-full bg-black bg-opacity-50 rounded-md border border-red-800 text-white outline-none transition focus:border-red-500 focus:shadow-lg focus:shadow-red-500/50 py-3 px-5 hover-blood-glow" />
       </div>
     </div>
     <button
       onclick="auth()"
-      class="bg-slate-800 hover:bg-blue-400 dark:bg-dark-2 border-dark dark:border-dark-2 border rounded-full inline-flex items-center justify-center py-3 px-7 text-center text-base font-medium text-white hover:bg-body-color hover:border-body-color disabled:bg-gray-3 disabled:border-gray-3 disabled:text-dark-5">
-      Login
+      class="button-blood text-white border-red-700 border rounded-full inline-flex items-center justify-center py-3 px-8 font-medium hover:scale-105 transform transition-all duration-300">
+      Login to REGIX Studio
     </button>
     <span
-      class="text-red-400 text-xl mt-2"
+      class="text-red-500 text-xl mt-4 pulse-blood"
       id="status"></span>
+  </div>
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-0 left-1/4 w-1 h-full bg-red-800 opacity-20" style="animation: blood-drip 8s infinite;"></div>
+    <div class="absolute top-0 left-2/4 w-1 h-full bg-red-600 opacity-20" style="animation: blood-drip 12s infinite 2s;"></div>
+    <div class="absolute top-0 left-3/4 w-1 h-full bg-red-400 opacity-20" style="animation: blood-drip 10s infinite 1s;"></div>
   </div>
 </div>
 
