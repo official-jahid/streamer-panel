@@ -1,4 +1,3 @@
-import pyexpat
 import pymem
 import pymem.pattern
 import pymem.process

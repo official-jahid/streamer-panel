@@ -1,7 +1,9 @@
-from pdb import run
+import hashlib
+import os
 import datetime
+import time
 import pymem
-from flask import Flask,jsonify, redirect, render_template,request,session
+from flask import Flask,jsonify, redirect, render_template,request,session,url_for
 from keyauth import *
 import sys
 import Memory
@@ -542,7 +544,7 @@ def M82BEspOff():
 def homePage():
     global user,version
     if keyauthapp.user_data.username:
-        return redirect('dashboard',version=version)
+        return redirect(url_for('dashboard'))
     else:
         return render_template('Homepage.html')
 
@@ -559,10 +561,6 @@ def run_flask():
     # Force bind to all interfaces
     app.run(debug=False, host='0.0.0.0', port=4070, threaded=True)
 
-# Call it like this
-if __name__ == "__main__":
-    run_flask()
-    
 isTaskClose = True
 def taskManger():
     global isTaskClose
@@ -600,20 +598,13 @@ def processManger():
         time.sleep(0.25)
 
 
-
 if __name__ == "__main__":
-    # sec = threading.Thread(target=security)
     flask = threading.Thread(target=run_flask)
     taskthred = threading.Thread(target=taskManger)
     processthread = threading.Thread(target=processManger)
-    #resourcethread = threading.Thread(target=resourceManger)
-    # sec.start()
     taskthred.start()
     processthread.start()
-    #resourcethread.start()
     flask.start()
     flask.join()
     taskthred.join()
-    #resourcethread.join()
     processthread.join()
-    # sec.join()
