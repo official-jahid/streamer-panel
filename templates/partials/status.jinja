@@ -1,12 +1,12 @@
 {% macro Status(version) %}
 <script src="{{url_for('static',filename='js/status.js')}}"></script>
-<div id="status">
+<div id="status" class="card-hover">
     <div>
         <h2>Status</h2>
         <span>WELCOME TO AXC CORPORATION </>DEV: AXC ANMOL & ARPIT</span>
     </div>
     <div>
-        <button id="onlinebtn" class="border-[#1bbc9b] border">Offline</button>
+        <button id="onlinebtn" class="border-red-accent border">Offline</button>
         <span>v{{version}}</span>
     </div>
 </div>
@@ -63,11 +63,11 @@
 	 color: white;
 }
  .active {
-	 background-color: #1bbc9b;
+	 background-color: #dc2626;
 }
  .inactive {
 	 background-color: #1f2427;
-	 border: 1px solid #1bbc9b;
+	 border: 1px solid #dc2626;
 }
  
 </style>

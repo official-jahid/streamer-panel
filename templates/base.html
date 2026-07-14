@@ -1,25 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXC CORPORATION</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>REGIX Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-</head>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+      crossorigin="anonymous"></script>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static',filename='css/animations.css')}}" />
+    <script src="{{url_for('static',filename='js/particles.js')}}"></script>
+  </head>
 
-<style>
+  <style>
     *::-webkit-scrollbar {
-        display: none;
-        font-family: monospace;
+      display: none;
+      font-family: monospace;
     }
-</style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0a0f;
+      overflow-x: hidden;
+    }
+    /* Ensure content sits above particle canvas */
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
 
-
-
-<body>
-    {% block body %}
-        
-    {% endblock %}
-</body>
+  <body>
+    <div class="content-wrapper">{% block body %} {% endblock %}</div>
+  </body>
 </html>

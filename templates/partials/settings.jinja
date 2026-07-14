@@ -1,11 +1,11 @@
 {% macro Settings(args) %}
     <script src="{{url_for('static',filename='js/settings.js')}}"></script>
-    <div id="headshot" class="divide-y bg-">
+    <div id="headshot" class="divide-y bg- card-hover">
         
         <div class="p-4 w-full h-full">
             <div class="flex flex-row justify-between items-center h-full">
                 <div>
-                    <h2 class="text-white font-bold text-2xl">Username: <span class="text-white" id="username"></span> </h2>
+                    <h2 class="text-white font-bold text-2xl">Username: <span class="text-red-accent" id="username"></span> </h2>
                     <span class="text-white opacity-60">HWID: <span class="text-white" id="hwid"></span></span>
                 </div>
                 
@@ -14,8 +14,8 @@
         <div class="p-4 w-full h-full">
             <div class="flex flex-row justify-between items-center h-full">
                 <div>
-                    <h2 class="text-white font-bold text-2xl">Expiry: <span  class="text-white" id="expiry"></span></h2>
-                    <span class="text-white opacity-60">Online Users: <span  class="text-white" id="onlineusers"></span></span>
+                    <h2 class="text-white font-bold text-2xl">Expiry: <span class="text-red-accent" id="expiry"></span></h2>
+                    <span class="text-white opacity-60">Online Users: <span class="text-red-accent" id="onlineusers"></span></span>
                 </div>
                 
             </div>

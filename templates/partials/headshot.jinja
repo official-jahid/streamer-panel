@@ -1,6 +1,6 @@
 {% macro Headshot(args) %}
     <script src="{{url_for('static',filename='js/headshot.js')}}"></script>
-    <div id="headshot" class="divide-y bg-">
+    <div id="headshot" class="divide-y bg- card-hover">
         <div class="p-4 w-full h-full">
             <div class="flex flex-row justify-between items-center h-full">
                 <div>
@@ -8,9 +8,9 @@
                     <span class="text-white opacity-60">Apply In Every Match</span>
                 </div>
                 <div>
-                    <button id="aimbotLoad" class="bg-inherit text-white border border-[#1bbc9b] p-2 w-24 rounded-md">Load</button>
+                    <button id="aimbotLoad" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Load</button>
                 </div>
-                <div id="spinner1" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
+                <div id="spinner1" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible spinner-red">
                     <svg class="text-gray-300 animate-spin" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24">
                         <path
@@ -31,10 +31,10 @@
                     <span class="text-white opacity-60">Apply In Every Match</span>
                 </div>
                 <div class="flex flex-wrap justify-end gap-2 w-fit">
-                    <button id="aimbotEnable" class="bg-inherit text-white border border-[#1bbc9b] p-2 w-24 rounded-md">Enable</button>
-                    <button id="aimbotDisable" class="bg-inherit text-white border border-[#1bbc9b] p-2 w-24 rounded-md">Disable</button>
+                    <button id="aimbotEnable" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Enable</button>
+                    <button id="aimbotDisable" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Disable</button>
                 </div>
-                <div id="spinner2" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
+                <div id="spinner2" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible spinner-red">
                     <svg class="text-gray-300 animate-spin" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24">
                         <path
@@ -55,9 +55,9 @@
                     <span class="text-white opacity-60">Apply In Every Match</span>
                 </div>
                 <div>
-                    <button id="dragLoad" class="bg-inherit text-white border border-[#1bbc9b] p-2 w-24 rounded-md">Load</button>
+                    <button id="dragLoad" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Load</button>
                 </div>
-                <div id="spinner3" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
+                <div id="spinner3" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible spinner-red">
                     <svg class="text-gray-300 animate-spin" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24">
                         <path
@@ -78,10 +78,10 @@
                     <span class="text-white opacity-60">Apply In Every Match</span>
                 </div>
                 <div class="flex flex-wrap justify-end gap-2">
-                    <button id="dragEnable" class="bg-inherit text-white border border-[#1bbc9b] p-2 w-24 rounded-md">Enable</button>
-                    <button id="dragDisable" class="bg-inherit text-white border border-[#1bbc9b] blue-600 p-2 w-24 rounded-md">Disable</button>
+                    <button id="dragEnable" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Enable</button>
+                    <button id="dragDisable" class="bg-inherit text-white border border-red-accent p-2 w-24 rounded-md btn-hover">Disable</button>
                 </div>
-                <div id="spinner4" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
+                <div id="spinner4" class="grid hidden place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible spinner-red">
                     <svg class="text-gray-300 animate-spin" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24">
                         <path

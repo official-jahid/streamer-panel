@@ -1,0 +1,143 @@
+/* ===== HOVER ANIMATIONS ===== */
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.card-hover:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 10px 40px rgba(220, 38, 38, 0.2) !important;
+  border-color: rgba(220, 38, 38, 0.4) !important;
+}
+
+/* Button hover effect - pronounced */
+.btn-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+.btn-hover:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35) !important;
+  border-color: #dc2626 !important;
+}
+.btn-hover:active {
+  transform: scale(0.98) !important;
+}
+
+/* Tab hover effect */
+.tab-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tab-hover:hover {
+  transform: scale(1.03) !important;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* Console toggle animation */
+.console-slide {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden;
+}
+
+/* Input focus animation */
+.input-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.input-glow:focus {
+  transform: scale(1.02) !important;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.3) !important;
+  border-color: #dc2626 !important;
+}
+
+/* Logo hover */
+.logo-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.logo-hover:hover {
+  transform: scale(1.08) !important;
+  box-shadow: 0 0 30px rgba(220, 38, 38, 0.4) !important;
+  outline-color: #dc2626 !important;
+}
+
+/* Spinner red theme */
+.spinner-red svg {
+  color: #dc2626 !important;
+}
+.spinner-red svg path:last-child {
+  color: #7f1d1d !important;
+}
+
+/* Red accent border */
+.border-red-accent {
+  border-color: #dc2626 !important;
+}
+
+/* Red accent background */
+.bg-red-accent {
+  background-color: #dc2626 !important;
+}
+
+/* Red accent text */
+.text-red-accent {
+  color: #dc2626 !important;
+}
+
+/* Active tab red */
+.active-red {
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+/* Inactive tab with red border */
+.inactive-red {
+  background-color: #363a40 !important;
+  border: 1px solid #dc2626 !important;
+  color: white !important;
+}
+
+/* Smooth page load animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.stagger-children > *:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.stagger-children > *:nth-child(8) {
+  animation-delay: 0.4s;
+}

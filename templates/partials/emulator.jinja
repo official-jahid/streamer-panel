@@ -1,13 +1,13 @@
 {% macro Emulator(args) %}
     <script src="{{url_for('static',filename='js/emulator.js')}}"></script>
-    <div id="emulator">
+    <div id="emulator" class="card-hover">
     <div>
         <h2>Emulator</h2>
     </div>
     <div>
         <div id="button">
-            <button id="btn1" class="grow flex text-white items-center justify-center"  on:click={handle32Bit}>32bit</button>
-            <button id="btn2" class="grow flex items-center text-white justify-center" on:click={handle64Bit}>64bit</button>
+            <button id="btn1" class="grow flex text-white items-center justify-center btn-hover"  on:click={handle32Bit}>32bit</button>
+            <button id="btn2" class="grow flex items-center text-white justify-center btn-hover" on:click={handle64Bit}>64bit</button>
         </div>
     </div>
 </div>
@@ -45,8 +45,8 @@
 	 width: min-content;
 	 height: min-content;
 	 display: flex;
-	 border: 1px solid #1bbc9b;
-	 outline: 1px solid #1bbc9b;
+	 border: 1px solid #dc2626;
+	 outline: 1px solid #dc2626;
 	 outline-offset: 1px;
 	 justify-content: space-around;
 	 padding: 0;
@@ -58,7 +58,7 @@
 	 height: 100%;
 	 whidth: 140px;
 	 color: white;
-	 background-color: #586fe4;
+	 background-color: #dc2626;
 }
 .inactive {
 	 height: 100%;
