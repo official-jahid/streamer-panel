@@ -1,5 +1,7 @@
 $(document).ready(function () {
-    console.log('headshot ready - REGIX Studio');
+    console.log('headshot ready')
+
+
 
     $("#aimbotLoad").click(function (e) { 
         e.preventDefault();
@@ -8,20 +10,23 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: "/aimbot-load",
+
             success: function (response) {
-                if(response.status == 200) {
-                    $("#aimbotLoad").addClass('border-red-500 text-red-300 pulse-blood');
+                if(response.status == 200)
+                {
+                    $("#aimbotLoad").addClass('border-[#1bbc9b] text-white');
                     $("#spinner1").addClass("hidden");
                     $("#aimbotLoad").removeClass("hidden");
-                } else {
+
+                }
+                else {
                     $("#spinner1").addClass("hidden");
                     $("#aimbotLoad").removeClass("hidden");
-                    $("#aimbotLoad").addClass('text-red-500');
+                    $("#aimbotLoad").addClass('bg-inherit text-white');
                 }
             }
         });
     });
-    
     $("#aimbotEnable").click(function (e) { 
         e.preventDefault();
         $("#aimbotEnable").addClass("hidden");
@@ -30,39 +35,50 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: "/aimbot-on",
+
             success: function (response) {
-                if(response.status == 200) {
+                if(response.status == 200)
+                {
+                    $("#aimbotEnable").addClass('border-[#1bbc9b]');
+                    $("#aimbotDisable").removeClass('border-[#1bbc9b]');
                     $("#spinner2").addClass("hidden");
-                    $("#aimbotDisable").removeClass("hidden");
-                } else {
+                    $("#AimEnable").removeClass("hidden");
+                }
+                else {
                     $("#spinner2").addClass("hidden");
-                    $("#aimbotEnable").removeClass("hidden");
+                    $("#AimEnable").removeClass("hidden");
+                    $("#aimbotEnable").addClass('bg-inherit text-white');
                 }
             }
         });
         $("#aimbotEnable").removeClass("hidden");
         $("#aimbotDisable").removeClass("hidden");
     });
-    
     $("#aimbotDisable").click(function (e) { 
         e.preventDefault();
+        $("#aimbotDisable").addClass("hidden");
         $("#spinner2").removeClass("hidden");
-        $("#aimbotEnable").addClass("hidden");
         $.ajax({
             type: "POST",
             url: "/aimbot-off",
+
             success: function (response) {
-                if(response.status == 200) {
+                if(response.status == 200)
+                {
+                    $("#aimbotDisable").addClass('border-[#1bbc9b]');
+                    $("#aimbotEnable").removeClass('border-[#1bbc9b]');
                     $("#spinner2").addClass("hidden");
-                    $("#aimbotEnable").removeClass("hidden");
-                } else {
+                    $("#AimDisable").removeClass("hidden");
+                }
+                else {
                     $("#spinner2").addClass("hidden");
-                    $("#aimbotDisable").removeClass("hidden");
+                    $("#AimDisable").removeClass("hidden");
+                    $("#aimbotDisable").addClass('bg-slate-600 text-white');
                 }
             }
         });
+        $("#aimbotDisable").removeClass("hidden");
     });
-    
     $("#dragLoad").click(function (e) { 
         e.preventDefault();
         $("#dragLoad").addClass("hidden");
@@ -70,20 +86,22 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: "/aimdrag-load",
+
             success: function (response) {
-                if(response.status == 200) {
+                if(response.status == 200)
+                {
                     $("#spinner3").addClass("hidden");
                     $("#dragLoad").removeClass("hidden");
-                    $("#dragLoad").addClass('border-red-500 text-red-300 pulse-blood');
-                } else {
+                    $("#dragLoad").addClass('border-[#1bbc9b] text-white');
+                }
+                else {
                     $("#spinner3").addClass("hidden");
                     $("#dragLoad").removeClass("hidden");
-                    $("#dragLoad").addClass('text-red-500');
+                    $("#dragLoad").addClass('bg-inherit text-white');
                 }
             }
         });
     });
-    
     $("#dragEnable").click(function (e) { 
         e.preventDefault();
         $("#spinner4").removeClass("hidden");
@@ -91,18 +109,23 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: "/aimdrag-on",
+
             success: function (response) {
-                if(response.status == 200) {
-                    $("#spinner4").addClass("hidden");
-                    $("#dragDisable").removeClass("hidden");
-                } else {
+                if(response.status == 200)
+                {
                     $("#spinner4").addClass("hidden");
                     $("#dragEnable").removeClass("hidden");
+                    $("#dragEnable").addClass('border-[#1bbc9b]');
+                    $("#dragDisable").removeClass('border-[#1bbc9b]');
+                }
+                else {
+                    $("#spinner4").addClass("hidden");
+                    $("#dragEnable").removeClass("hidden");
+                    $("#dragEnable").addClass('bg-slate-600 text-white');
                 }
             }
         });
     });
-    
     $("#dragDisable").click(function (e) { 
         e.preventDefault();
         $("#spinner4").removeClass("hidden");
@@ -110,13 +133,19 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: "/aimdrag-off",
+
             success: function (response) {
-                if(response.status == 200) {
-                    $("#spinner4").addClass("hidden");
-                    $("#dragEnable").removeClass("hidden");
-                } else {
+                if(response.status == 200)
+                {
                     $("#spinner4").addClass("hidden");
                     $("#dragDisable").removeClass("hidden");
+                    $("#dragDisable").addClass('border-[#1bbc9b]');
+                    $("#dragEnable").removeClass('border-[#1bbc9b]');
+                }
+                else {
+                    $("#spinner4").addClass("hidden");
+                    $("#dragDisable").removeClass("hidden");
+                    $("#dragDisable").addClass('bg-inherit');
                 }
             }
         });

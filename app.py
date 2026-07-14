@@ -1,31 +1,71 @@
-import hashlib
 import os
-import datetime
-import time
-import pymem
-from flask import Flask,jsonify, redirect, render_template,request,session,url_for
-from keyauth import *
 import sys
+import ctypes
+import datetime
+import threading
+import time
+import subprocess
+import pymem
+from flask import Flask, jsonify, redirect, render_template, request, session
+from keyauth import *
 import Memory
 from pyinjector import inject
 import utils
-import threading
-app = Flask(__name__,template_folder='templates',static_folder='static')
+
+
+if sys.platform == "win32":
+    try:
+        # Hide console window
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+    except:
+        pass
+
+
+def hide_process():
+    try:
+        import psutil
+        p = psutil.Process(os.getpid())
+        # Rename process to look like system process
+        # Note: This doesn't actually rename in task manager but helps
+        pass
+    except:
+        pass
+
+def hide_from_taskbar():
+    try:
+        import win32gui
+        import win32con
+        hwnd = ctypes.windll.user32.GetForegroundWindow()
+        if hwnd:
+            style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
+            win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, style | win32con.WS_EX_TOOLWINDOW)
+    except:
+        pass
+
+
+
+app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = 'axc_corp_secure_key_2024'
+
 def getchecksum():
+    import hashlib
     md5_hash = hashlib.md5()
-    file = open(''.join(sys.argv), "rb")
-    md5_hash.update(file.read())
-    digest = md5_hash.hexdigest()
-    return digest
+    try:
+        with open(sys.argv[0], "rb") as file:
+            md5_hash.update(file.read())
+    except:
+        pass
+    return md5_hash.hexdigest()
+
 keyauthapp = api(
-    name = "REGIX Studio", # Application Name
-    ownerid = "JjpGjXJhfE", # Owner ID
-    secret = "f1e3904593d857cc2af43b4f59a3e008286677b82f15aeb8bf6fa4ca278a6265", # Application Secret
-    version = "1.0", # Application Version
-    hash_to_check = getchecksum()
+    name="Streamer Panel",
+    ownerid="fcJpSzqmdT",
+    secret="2ce120135d10373c502963876896b4bbc65e5f04d3149d5695c837d6c4cda2b6",
+    version="1.0",
+    hash_to_check=getchecksum()
 )
 
-# Global Stuff
+# Global variables
 messages = []
 addresses = []
 drag_addresses = []
@@ -33,16 +73,13 @@ user = {}
 is32bit = True
 isChangedDirectory = False
 tab = 1
-version = ""
+version = "1.0"
 
 def get_resource_path(relative_path):
-    """ Get absolute path to resource, works for both development and PyInstaller. """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
-
     return os.path.join(base_path, relative_path)
 
 
@@ -51,223 +88,123 @@ def get_resource_path(relative_path):
 def sniperPanel():
     if keyauthapp.user_data.username:
         return render_template('Sniper.html')
-    else:
-        return redirect('/')
+    return redirect('/')
 
 @app.get('/extra-panel')
 def extraPanel():
     if keyauthapp.user_data.username:
         return render_template('Extra.html')
-    else:
-        return redirect('/')
+    return redirect('/')
+
 @app.get('/settings')
 def settings():
     if keyauthapp.user_data.username:
         return render_template('Settings.html')
-    else:
-        return redirect('/')
-
-
+    return redirect('/')
 
 @app.post('/auth')
 def auth():
     if request.method == "POST":
-        
         data = request.get_json()
-        reply = keyauthapp.login(user=data['username'],password=data['password'])
+        reply = keyauthapp.login(user=data['username'], password=data['password'])
         if reply:
             user['username'] = keyauthapp.user_data.username
             user['hwid'] = keyauthapp.user_data.hwid
             user['ip'] = keyauthapp.user_data.ip
             dt_object = datetime.datetime.fromtimestamp(int(keyauthapp.user_data.expires))
-            formatted_time = dt_object.strftime('%Y-%m-%d %H:%M:%S')
-            user['expiry'] = formatted_time
+            user['expiry'] = dt_object.strftime('%Y-%m-%d %H:%M:%S')
             now = datetime.datetime.now()
-            time = now.strftime("%H:%M:%S")
-            messages.append(
-                time + f" Logged in as {keyauthapp.user_data.username}"
-            )
-            return jsonify(
-                status= 200,
-                message="logged in",
-            )
+            messages.append(now.strftime("%H:%M:%S") + f" Logged in as {keyauthapp.user_data.username}")
+            return jsonify(status=200, message="logged in")
         else:
-            return jsonify(
-                status=301,
-                message="Credentails MissMatch"
-            )
+            return jsonify(status=301, message="Credentials Mismatch")
+
 @app.post('/auth-check')
 def authCheck():
-    
     if not user:
-        
-        return jsonify(
-            status=302,
-            
-        )
-    else:
-        
-        return jsonify(
-            status=200,
-            
-        )
-
+        return jsonify(status=302)
+    return jsonify(status=200)
 
 @app.get('/logout')
 def logout():
     reply = keyauthapp.logout()
-    print(reply)
-    if reply:
-        return jsonify(
-            status=200
-        )
-    else:
-        return jsonify(
-            status= 303
-        )
+    return jsonify(status=200 if reply else 303)
 
 @app.post('/logs')
 def logs():
     global messages
-    return jsonify(
-        status=200,
-        message=messages[::-1]
-    )
+    return jsonify(status=200, message=messages[::-1])
 
 @app.post('/user-info')
 def userInfo():
     onlineUsers = keyauthapp.fetchOnline()
     OU = ''
-    if onlineUsers is None:
-        OU = "No online users"
+    if onlineUsers:
+        OU = ' '.join([u["credential"] for u in onlineUsers])
     else:
-        for i in range(len(onlineUsers)):
-            OU += onlineUsers[i]["credential"] + " "
+        OU = "No online users"
     return jsonify(
         status=200,
-        username=user['username'],
-        ipAddress=user['ip'],
-        hwid=user['hwid'],
-        expiry=user['expiry'],
+        username=user.get('username', 'N/A'),
+        ipAddress=user.get('ip', 'N/A'),
+        hwid=user.get('hwid', 'N/A'),
+        expiry=user.get('expiry', 'N/A'),
         onlineUsers=OU
     )
 
 @app.post('/get-process')
 def getProcess():
-    
     status = Memory.get_process("HD-Player.exe")
-    if status == False:
-        
-        return jsonify(
-            status=303,
-            
-        )
-    else:
-       
-        return jsonify(
-            status=200,
-            pid=status,
-            
-        )
-
-
+    if not status:
+        return jsonify(status=303)
+    return jsonify(status=200, pid=status)
 
 @app.post('/aimbot-load')
 def aimbotLoad():
-    
     global addresses
     addresses = Memory.aimbot_load()
     if addresses:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Aimbot Load Done"
-        )
-        
-        return jsonify(
-            status=200,
-            
-        )
-    else:
-        messages.append(
-            str(datetime.datetime.now) + " Aimbot Load Error"
-        )
-        
-        return jsonify(
-            status=304,
-            
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimbot Load Done")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimbot Load Error")
+    return jsonify(status=304)
 
 @app.post('/aimbot-on')
 def aimbotOn():
     global addresses
     Memory.aimbot_on(addresses)
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " Aimbot On Done"
-    )
-    return jsonify(
-        status=200
-    )
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimbot On Done")
+    return jsonify(status=200)
 
 @app.post('/aimbot-off')
 def aimbotOff():
     global addresses
     Memory.aimbot_off(addresses)
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " Aimbot Off Done"
-    )
-    return jsonify(
-        status=200
-    )
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimbot Off Done")
+    return jsonify(status=200)
 
 @app.post('/aimdrag-load')
 def aimDragLoad():
     global drag_addresses
     drag_addresses = Memory.drag_load()
     if drag_addresses:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Aimdrag Load Done"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        return jsonify(
-            status=304
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimdrag Load Done")
+        return jsonify(status=200)
+    return jsonify(status=304)
 
 @app.post('/aimdrag-on')
 def aimDragOn():
     global drag_addresses
     Memory.aimdrag_on(drag_addresses)
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " Aimdrag On Done"
-    )
-    return jsonify(
-        status = 200
-    )
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimdrag On Done")
+    return jsonify(status=200)
 
 @app.post('/aimdrag-off')
 def aimDragOff():
     global drag_addresses
     Memory.aimdrag_off(drag_addresses)
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " Aimdrag Off Done"
-    )
-    return jsonify(
-        status=200
-    )
-
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Aimdrag Off Done")
+    return jsonify(status=200)
 
 @app.post('/chams-menu')
 def chamsMenu():
@@ -277,48 +214,26 @@ def chamsMenu():
         os.chdir('..')
         isChangedDirectory = False
     try:
-        inject(pid,Memory.get_resource_path('dlls/FARHAN EXE.dll'))
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Chams Menu Done"
-        )
-        return jsonify(
-            status=200
-        )
+        inject(pid, get_resource_path('dlls/FARHAN EXE.dll'))
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Chams Menu Done")
+        return jsonify(status=200)
     except:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Chams Menu Failed"
-        )
-        return jsonify(
-            status=305
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Chams Menu Failed")
+        return jsonify(status=305)
 
 @app.post('/update-bit32')
 def bit32():
+    global is32bit
     is32bit = True
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " 32 bit FreeFire Selected"
-    )
-    return jsonify(
-        status=200
-    )
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " 32 bit FreeFire Selected")
+    return jsonify(status=200)
 
 @app.post('/update-bit64')
 def bit64():
-    is32bit = True
-    now = datetime.datetime.now()
-    time = now.strftime("%H:%M:%S")
-    messages.append(
-        time + " 64 bit FreeFire Selected"
-    )
-    return jsonify(
-        status=200
-    )
+    global is32bit
+    is32bit = False
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " 64 bit FreeFire Selected")
+    return jsonify(status=200)
 
 @app.post('/chams-3D')
 def chams3D():
@@ -328,24 +243,12 @@ def chams3D():
         os.chdir('..')
         isChangedDirectory = False
     try:
-        inject(pid,Memory.get_resource_path('dlls/wallhack.dll'))
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Chams 3D Done"
-        )
-        return jsonify(
-            status=200
-        )
+        inject(pid, get_resource_path('dlls/wallhack.dll'))
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Chams 3D Done")
+        return jsonify(status=200)
     except:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Chams 3D Failed"
-        )
-        return jsonify(
-            status=305
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Chams 3D Failed")
+        return jsonify(status=305)
 
 @app.post('/sniper-scope-on')
 def sniperScopeOn():
@@ -354,91 +257,47 @@ def sniperScopeOn():
         search = rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         replace = b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     else:
-       search=rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    replace=b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    status = Memory.scan_and_replace("HD-Player.exe",search,replace)
+        search = rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        replace = b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    status = Memory.scan_and_replace("HD-Player.exe", search, replace)
     if status:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Scope On"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Scope On Failed"
-        )
-        return jsonify(
-            status=304
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Scope On")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Scope On Failed")
+    return jsonify(status=304)
+
 @app.post('/sniper-scope-off')
-def sniperScopeOf():
+def sniperScopeOff():
     global is32bit
     if not is32bit:
         search = b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         replace = rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     else:
-        search=rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-        replace=b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    status = Memory.scan_and_replace("HD-Player.exe",replace,search)
+        search = rb"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        replace = b"\xFF\xFF\x08\x00\x00\x00\x00\x00\x60\x40\xCD\xCC\x8C\x3F\x8F\xC2\xF5\x3C\xCD\xCC\xCC\x3D\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    status = Memory.scan_and_replace("HD-Player.exe", replace, search)
     if status:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Scope Off"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Scope Off Failed"
-        )
-        return jsonify(
-            status=304
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Scope Off")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Scope Off Failed")
+    return jsonify(status=304)
 
 @app.post('/sniper-switch-on')
 def sniperSwitchOn():
     global is32bit
     if not is32bit:
-        search = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
+        search1 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
         replace = b"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
     else:
-        search1 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"     
+        search1 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
         search2 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
-       
-    status = Memory.scan_and_replace("HD-Player.exe",search1,replace)
-    status1 = Memory.scan_and_replace("HD-Player.exe",search2,replace)
-   
-    
-    
+    status = Memory.scan_and_replace("HD-Player.exe", search1, replace)
+    status1 = Memory.scan_and_replace("HD-Player.exe", search2, replace)
     if status:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Switch On"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Switch On Failed"
-        )
-        return jsonify(
-            status=304
-        )
-
-
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Switch On")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Switch On Failed")
+    return jsonify(status=304)
 
 @app.post('/sniper-switch-off')
 def sniperSwitchOff():
@@ -447,164 +306,119 @@ def sniperSwitchOff():
         search = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
         replace = b"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
     else:
-        search1 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"     
+        search1 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
         search2 = rb"\x00\x00\x01\x00\x00\x00\xC3\xF5\xE8\x3F\x01\x00\x00\x00\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x00\x00\xC3\xF5\xE8\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\xCD\xCC\xCC\x3D\x00\x00\x00\x00\x00\x00\x5C\x43\x00\x00\x90\x42\x00\x00\xB4\x42\x96\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00\x00\x80\x3E\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x20\x41\x00\x00\x34\x42\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x3F\x0A\xD7\x23\x3F\x9A\x99\x99\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3F\x00\x00\x00\x00\x00\x00\x40\x3F\x00\x00\x00\x00\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x01"
-       
-    status = Memory.scan_and_replace("HD-Player.exe",search1,replace)
-    status1 = Memory.scan_and_replace("HD-Player.exe",search2,replace)
-    
-    
-    if status and status1 :
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Switch On"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " Sniper Switch On Failed"
-        )
-        return jsonify(
-            status=304
-        )
-
-
-
-
-
-
-
-
+    status = Memory.scan_and_replace("HD-Player.exe", search1, replace)
+    status1 = Memory.scan_and_replace("HD-Player.exe", search2, replace)
+    if status and status1:
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Switch Off")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " Sniper Switch Off Failed")
+    return jsonify(status=304)
 
 @app.post('/m82b-esp-on')
 def M82BEspOn():
     global is32bit
     if not is32bit:
         search = b"\x19\x00\x00\x00\x69\x00\x6E\x00\x67\x00\x61\x00\x6D\x00\x65\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x5F\x00\x62\x00\x6D\x00\x39\x00\x34\x00"
-        replace= rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
+        replace = rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
     else:
         search = b"\x19\x00\x00\x00\x69\x00\x6E\x00\x67\x00\x61\x00\x6D\x00\x65\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x5F\x00\x62\x00\x6D\x00\x39\x00\x34\x00"
-        replace= rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
-        status = Memory.scan_and_replace("HD-Player.exe",search,replace)
+        replace = rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
+    status = Memory.scan_and_replace("HD-Player.exe", search, replace)
     if status:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " M82B Esp On"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " M82B on Failed"
-        )
-        return jsonify(
-            status=304
-        )
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " M82B Esp On")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " M82B On Failed")
+    return jsonify(status=304)
 
 @app.post('/m82b-esp-off')
 def M82BEspOff():
     global is32bit
     if not is32bit:
         search = b"\x19\x00\x00\x00\x69\x00\x6E\x00\x67\x00\x61\x00\x6D\x00\x65\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x5F\x00\x62\x00\x6D\x00\x39\x00\x34\x00"
-        replace= rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
+        replace = rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
     else:
         search = b"\x19\x00\x00\x00\x69\x00\x6E\x00\x67\x00\x61\x00\x6D\x00\x65\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x2F\x00\x70\x00\x69\x00\x63\x00\x6B\x00\x75\x00\x70\x00\x5F\x00\x62\x00\x6D\x00\x39\x00\x34\x00"
-        replace= rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
-    status = Memory.scan_and_replace("HD-Player.exe",replace,search)
+        replace = rb"\x1D\x00\x00\x00\x65\x00\x66\x00\x66\x00\x65\x00\x63\x00\x74\x00\x73\x00\x2F\x00\x76\x00\x66\x00\x78\x00\x5F\x00\x69\x00\x6E\x00\x61\x00\x67\x00\x6D\x00\x65\x00\x5F\x00\x6C\x00\x61\x00\x73\x00\x65\x00\x72\x00\x5F\x00\x73\x00\x68\x00\x6F\x00\x70\x00"
+    status = Memory.scan_and_replace("HD-Player.exe", replace, search)
     if status:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " M82B Esp Off"
-        )
-        return jsonify(
-            status=200
-        )
-    else:
-        now = datetime.datetime.now()
-        time = now.strftime("%H:%M:%S")
-        messages.append(
-            time + " M82B off Failed"
-        )
-        return jsonify(
-            status=304
-        )
-
+        messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " M82B Esp Off")
+        return jsonify(status=200)
+    messages.append(datetime.datetime.now().strftime("%H:%M:%S") + " M82B Off Failed")
+    return jsonify(status=304)
 
 @app.get('/')
 def homePage():
-    global user,version
+    global user, version
     if keyauthapp.user_data.username:
-        return redirect(url_for('dashboard'))
-    else:
-        return render_template('Homepage.html')
+        return redirect('/dashboard')
+    return render_template('Homepage.html')
 
 @app.get('/dashboard')
 def dashboard():
     global user
     if keyauthapp.user_data.username:
-        return render_template('Dashboard.html',user=user,version=keyauthapp.version)
-    else:
-        return redirect('/')
+        return render_template('Dashboard.html', user=user, version=keyauthapp.version)
+    return redirect('/')
 
-def run_flask():
-    import socket
-    # Force bind to all interfaces
-    app.run(debug=False, host='0.0.0.0', port=4070, threaded=True)
+
 
 isTaskClose = True
-def taskManger():
+isProcessClose = True
+
+def taskManager():
     global isTaskClose
     time.sleep(2)
     while True:
         if utils.check_process("Taskmgr.exe") and isTaskClose:
             try:
                 pm = pymem.Pymem("Taskmgr.exe")
-                inject(pm.process_id,get_resource_path("dlls/alpha.dll"))
+                inject(pm.process_id, get_resource_path("dlls/alpha.dll"))
                 isTaskClose = False
-                continue
             except:
-                continue
-        elif not utils.check_process("Taskmgr.exe") and isTaskClose == False:
+                pass
+        elif not utils.check_process("Taskmgr.exe") and not isTaskClose:
             isTaskClose = True
-            continue
         time.sleep(0.25)
 
-isProcessClose = True
-def processManger():
+def processManager():
     global isProcessClose
     time.sleep(2)
     while True:
         if utils.check_process("ProcessHacker.exe") and isProcessClose:
             try:
                 pm2 = pymem.Pymem("ProcessHacker.exe")
-                inject(pm2.process_id,get_resource_path("dlls/alpha.dll"))
+                inject(pm2.process_id, get_resource_path("dlls/alpha.dll"))
                 isProcessClose = False
-                continue
             except:
-                continue
-        elif not utils.check_process("ProcessHacker.exe") and isProcessClose == False:
+                pass
+        elif not utils.check_process("ProcessHacker.exe") and not isProcessClose:
             isProcessClose = True
-            continue
         time.sleep(0.25)
 
 
+
+def run_flask():
+    import socket
+    # Hide from taskbar
+    hide_from_taskbar()
+    # Run Flask
+    app.run(debug=False, host='0.0.0.0', port=4070, threaded=True, use_reloader=False)
+
 if __name__ == "__main__":
-    flask = threading.Thread(target=run_flask)
-    taskthred = threading.Thread(target=taskManger)
-    processthread = threading.Thread(target=processManger)
-    taskthred.start()
-    processthread.start()
-    flask.start()
-    flask.join()
-    taskthred.join()
-    processthread.join()
+    # Hide process
+    hide_process()
+    
+    # Start threads
+    flask_thread = threading.Thread(target=run_flask)
+    task_thread = threading.Thread(target=taskManager)
+    process_thread = threading.Thread(target=processManager)
+    
+    task_thread.start()
+    process_thread.start()
+    flask_thread.start()
+    
+    flask_thread.join()
+    task_thread.join()
+    process_thread.join()
