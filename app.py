@@ -63,9 +63,9 @@ def getchecksum():
     return md5_hash.hexdigest()
 
 keyauthapp = api(
-    name="Vgg147627's Application", # Add your keyauth application name
-    ownerid="qPC80aXs4R", # Add your keyauth application ownerid
-    secret="217e6b4589c5dfa81de28cc7269d3fa2369f13363a90273e35e0a496b4606eaf", # Add your keyauth application secret
+    name="Ashrafulislamchy40's Application", # Add your keyauth application name
+    ownerid="wV9wnqLQ58", # Add your keyauth application ownerid
+    secret="658543c2a636318508f300b4d4a67652472dca24f57afbd915f96533764063c3", # Add your keyauth application secret
     version="1.0",
     hash_to_check=getchecksum()
 )
