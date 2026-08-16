@@ -7,6 +7,11 @@ dist/
 *.pkg
 *.dmg
 
+# PyInstaller intermediates
+*.toc
+*.manifest
+*.p
+
 # Python cache
 __pycache__/
 *.py[cod]
@@ -60,3 +65,32 @@ C:/ProgramData/KeyAuth/
 # Pip cache
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Test / coverage caches
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# Standalone duplicate app (development copy)
+REGIX_Studio/
+
+# Archives
+*.7z
+*.rar
+*.zip
+*.tar
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+
+# Misc development files
+*.whl
+*.diff
+*.patch
+.python-version
+*.egg-info/
+*.egg
