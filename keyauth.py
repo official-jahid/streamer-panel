@@ -532,19 +532,22 @@ class api:
             
             signature = response.headers["signature"]
 
-            if not os.path.exists("C:\\ProgramData\\KeyAuth"):
-                os.makedirs("C:\\ProgramData\\KeyAuth")
-                os.makedirs("C:\\ProgramData\\KeyAuth\\Debug")
+            try:
+                if not os.path.exists("C:\\ProgramData\\KeyAuth"):
+                    os.makedirs("C:\\ProgramData\\KeyAuth")
+                    os.makedirs("C:\\ProgramData\\KeyAuth\\Debug")
 
-            exe_name = os.path.basename(__file__)
-            if not os.path.exists(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}"):
-                os.makedirs(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}")
+                exe_name = os.path.basename(__file__)
+                if not os.path.exists(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}"):
+                    os.makedirs(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}")
 
-            with open(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}\\log.txt", "a") as log_file:
-                if len(response.text) <= 200:
-                    tampered = not hmac.compare_digest(client_computed, signature)
-                    execution_time = time.strftime("%I:%M %p | %m/%d/%Y")
-                    log_file.write(f"\n{execution_time} | {post_data['type']} \nResponse: {response.text}\n Was response tampered with? {tampered}\n")
+                with open(f"C:\\ProgramData\\KeyAuth\\Debug\\{exe_name}\\log.txt", "a") as log_file:
+                    if len(response.text) <= 200:
+                        tampered = not hmac.compare_digest(client_computed, signature)
+                        execution_time = time.strftime("%I:%M %p | %m/%d/%Y")
+                        log_file.write(f"\n{execution_time} | {post_data['type']} \nResponse: {response.text}\n Was response tampered with? {tampered}\n")
+            except Exception:
+                pass  # Ignore log file permission errors - don't crash the app
             
             if not hmac.compare_digest(client_computed, signature):
                 print("Signature checksum failed. Request was tampered with or session ended most likely.")

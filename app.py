@@ -92,19 +92,19 @@ def get_resource_path(relative_path):
 @app.get('/sniper-panel')
 def sniperPanel():
     if keyauthapp.user_data.username:
-        return render_template('Sniper.html')
+        return render_template('sniper.html')
     return redirect('/')
 
 @app.get('/extra-panel')
 def extraPanel():
     if keyauthapp.user_data.username:
-        return render_template('Extra.html')
+        return render_template('extra.html')
     return redirect('/')
 
 @app.get('/settings')
 def settings():
     if keyauthapp.user_data.username:
-        return render_template('Settings.html')
+        return render_template('settings.html')
     return redirect('/')
 
 @app.post('/auth')
@@ -358,13 +358,13 @@ def homePage():
     global user, version
     if keyauthapp.user_data.username:
         return redirect('/dashboard')
-    return render_template('Homepage.html')
+    return render_template('homepage.html')
 
 @app.get('/dashboard')
 def dashboard():
     global user
     if keyauthapp.user_data.username:
-        return render_template('Dashboard.html', user=user, version=keyauthapp.version)
+        return render_template('dashboard.html', user=user, version=keyauthapp.version)
     return redirect('/')
 
 

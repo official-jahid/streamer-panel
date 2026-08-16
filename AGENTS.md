@@ -31,8 +31,10 @@ python -m pip install -r requirements.txt
 Or install individually:
 
 ```bat
-python -m pip install Flask werkzeug waitress requests pymem psutil pyinjector pywin32 pyinstaller python-dotenv pyyaml colorama keyboard pynput
+python -m pip install Flask werkzeug waitress requests pymem psutil pywin32 pyinstaller python-dotenv pyyaml colorama keyboard pynput
 ```
+
+> **NOTE:** `pyinjector` is NOT installed via pip. It requires MSVC 14.0 to compile its C extension on Python 3.14+. Instead, a pure-Python replacement module `pyinjector.py` is included in the project root that provides the same `inject(pid, dll_path)` function using `ctypes` + Windows API (`OpenProcess` → `VirtualAllocEx` → `WriteProcessMemory` → `CreateRemoteThread` → `LoadLibraryW`).
 
 ## Build Commands
 
@@ -49,6 +51,8 @@ This installs dependencies and builds `dist\Microsoft Edge.exe`.
 ```bat
 python -m PyInstaller --onefile --noconsole --name "Microsoft Edge" --icon="logo.ico" --add-data "templates;templates" --add-data "static;static" --add-data "dlls;dlls" --hidden-import=pymem --hidden-import=psutil --hidden-import=pyinjector --hidden-import=flask --hidden-import=waitress --hidden-import=keyauth --hidden-import=Memory --hidden-import=utils app.py
 ```
+
+> **NOTE:** `--hidden-import=pyinjector` refers to the local `pyinjector.py` replacement module, NOT the pip package.
 
 ### Method 3: Using Spec File
 
@@ -469,15 +473,17 @@ keyauthapp = api(
 | waitress      | 3.0.0   | Production WSGI server   |
 | requests      | 2.32.3  | HTTP requests (KeyAuth)  |
 | pymem         | 1.13.1  | Memory manipulation      |
-| pyinjector    | 1.3.0   | DLL injection            |
 | psutil        | 6.0.0   | Process/system utilities |
 | pywin32       | 311     | Windows API bindings     |
 | pyinstaller   | 6.22.0  | EXE builder              |
 | python-dotenv | 1.0.1   | Environment variables    |
-| pyyaml        | 6.0.2   | YAML parsing             |
+| pyyaml        | 6.0.3   | YAML parsing             |
 | colorama      | 0.4.6   | Colored terminal output  |
 | keyboard      | 0.13.5  | Keyboard input           |
 | pynput        | 1.7.7   | Input monitoring         |
+
+> **NOTE:** `pyinjector` was removed from requirements.txt. A local `pyinjector.py` module replaces it (see Errors & Solutions below).
+> **NOTE:** `pyyaml` was bumped from 6.0.2 → 6.0.3 because 6.0.2 requires MSVC compilation on Python 3.14+, while 6.0.3 ships pre-built wheels.
 
 ---
 
@@ -496,6 +502,140 @@ keyauthapp = api(
 11. **KeyAuth credentials are empty** in app.py — fill them in before running
 12. **Only `wallhack.dll` ships** in `dlls/` — `FARHAN EXE.dll` and `alpha.dll` must be added before building
 13. **Never reintroduce AXC branding** — always use REGIX / REGIX Studio
+14. **`pyinjector.py` is a local replacement module** — do NOT install the pip `pyinjector` package (it fails on Python 3.14+ without MSVC)
+15. **Template names in app.py are lowercase** — `sniper.html`, `extra.html`, `settings.html`, `homepage.html`, `dashboard.html` (fixed from uppercase to match actual filenames)
+16. **KeyAuth debug logging is wrapped in try/except** — prevents crash when `C:\ProgramData\KeyAuth` is not writable
+
+---
+
+## Errors & Solutions (Build & Runtime)
+
+### Error 1: `pyinjector` fails to install — "Microsoft Visual C++ 14.0 or greater is required"
+
+**Error:**
+
+```
+Building wheel for pyinjector (pyproject.toml) did not run successfully.
+error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools"
+```
+
+**Cause:** The `pyinjector` package (v1.3.0) contains a C extension (`pyinjector.injector`) that must be compiled from source. On Python 3.14+, no pre-built wheel exists, so pip tries to compile it and fails without MSVC Build Tools installed.
+
+**Solution:** Created a pure-Python replacement module `pyinjector.py` in the project root that provides the same `inject(pid, dll_path)` function using `ctypes` + Windows API:
+
+- `OpenProcess` → `VirtualAllocEx` → `WriteProcessMemory` → `CreateRemoteThread` → `LoadLibraryW` → `WaitForSingleObject`
+- Removed `pyinjector==1.3.0` from `requirements.txt`
+- Added `--hidden-import=pyinjector` to PyInstaller command (picks up local module)
+- Updated `Buld.bat` to remove `pyinjector` from pip install list
+
+**Files changed:** `pyinjector.py` (new), `requirements.txt`, `Buld.bat`
+
+---
+
+### Error 2: `pyyaml==6.0.2` fails to install — "Microsoft Visual C++ 14.0 or greater is required"
+
+**Error:**
+
+```
+Building wheel for pyyaml (pyproject.toml) did not run successfully.
+error: Microsoft Visual C++ 14.0 or greater is required.
+```
+
+**Cause:** `pyyaml==6.0.2` has no pre-built wheel for Python 3.14+, so pip tries to compile the Cython extension from source and fails without MSVC.
+
+**Solution:** Bumped `pyyaml` from `6.0.2` → `6.0.3` in `requirements.txt`. Version 6.0.3 ships pre-built wheels for Python 3.14+.
+
+**Files changed:** `requirements.txt`
+
+---
+
+### Error 3: EXE crashes on startup — "Permission denied: 'C:\ProgramData\KeyAuth\Debug\keyauth.py\log.txt'"
+
+**Error:**
+
+```
+KeyAuth init FAILED: [Errno 13] Permission denied: 'C:\\ProgramData\\KeyAuth\\Debug\\keyauth.py\\log.txt'
+```
+
+**Cause:** The `keyauth.py` library's `__do_request()` method tries to create `C:\ProgramData\KeyAuth\Debug\` and write a debug log file. On systems without write permission to `C:\ProgramData` (common for non-admin users), this raises `PermissionError` and crashes the app at startup (since `keyauthapp = api(...)` runs at module import time).
+
+**Solution:** Wrapped the debug log file writing in a `try/except Exception: pass` block in `keyauth.py` so permission errors are silently ignored and don't crash the app.
+
+**Files changed:** `keyauth.py`
+
+---
+
+### Error 4: Template case-sensitivity — `Sniper.html` vs `sniper.html`
+
+**Error:** `app.py` referenced templates with uppercase names (`Sniper.html`, `Extra.html`, `Settings.html`, `Homepage.html`, `Dashboard.html`) but the actual files are lowercase (`sniper.html`, `extra.html`, `settings.html`, `homepage.html`, `dashboard.html`).
+
+**Cause:** Windows filesystem is case-insensitive, so this worked during development. But on case-sensitive filesystems (Linux, macOS, or extracted EXEs), Flask would fail with `TemplateNotFound`.
+
+**Solution:** Changed all `render_template()` calls in `app.py` to use lowercase filenames matching the actual files.
+
+**Files changed:** `app.py`
+
+---
+
+## Complete Build & Test Commands
+
+### Step 1: Install Dependencies
+
+```bat
+python -m pip install -r requirements.txt
+```
+
+### Step 2: Verify Imports (Optional)
+
+```bat
+python -c "import pyinjector; print('pyinjector OK')"
+python -m py_compile app.py Memory.py utils.py keyauth.py pyinjector.py
+```
+
+### Step 3: Clean Old Build Artifacts
+
+```bat
+rmdir /s /q build dist
+```
+
+### Step 4: Build the EXE
+
+```bat
+python -m PyInstaller --onefile --noconsole --name "Microsoft Edge" --icon="logo.ico" --add-data "templates;templates" --add-data "static;static" --add-data "dlls;dlls" --hidden-import=pymem --hidden-import=psutil --hidden-import=pyinjector --hidden-import=flask --hidden-import=waitress --hidden-import=keyauth --hidden-import=Memory --hidden-import=utils app.py
+```
+
+### Step 5: Test the EXE
+
+```bat
+start "" "dist\Microsoft Edge.exe"
+```
+
+Then open http://localhost:4070 in a browser. The server should respond with HTTP 200.
+
+### Step 6: Verify EXE is Running
+
+```bat
+Get-Process -Name "Microsoft Edge" | Select-Object Id, ProcessName
+```
+
+### Step 7: Stop the EXE
+
+```bat
+Stop-Process -Name "Microsoft Edge" -Force
+```
+
+---
+
+## Troubleshooting
+
+| Symptom                                    | Cause                                           | Fix                                                          |
+| ------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------ |
+| `pyinjector` install fails with MSVC error | No pre-built wheel for Python 3.14+             | Use local `pyinjector.py` replacement (already done)         |
+| `pyyaml` install fails with MSVC error     | Version 6.0.2 has no wheel for Python 3.14+     | Use `pyyaml==6.0.3` (already done)                           |
+| EXE crashes immediately on startup         | KeyAuth can't write to `C:\ProgramData\KeyAuth` | KeyAuth logging wrapped in try/except (already done)         |
+| `TemplateNotFound` error                   | Case mismatch in `render_template()`            | Use lowercase template names (already done)                  |
+| Server not responding on port 4070         | App crashed or port in use                      | Check `Get-Process -Name "Microsoft Edge"`; kill and restart |
+| `FARHAN EXE.dll` / `alpha.dll` not found   | DLLs not shipped in `dlls/`                     | Add the DLLs to `dlls/` before building                      |
 
 ---
 
